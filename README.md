@@ -1,0 +1,121 @@
+# MitraPesisir — Pusat Data Komunitas & Kondisi Laut (Laravel MVC)
+
+Aplikasi web **FITCOM 4.0 (Intelligent Water & Marine)** berbasis **Laravel 12 (PHP 8.2+) · Blade · Tailwind CSS · MySQL 8**, disusun dengan pola **Model–View–Controller** dan mengikuti desain Figma MitraPesisir.
+
+## Fitur
+
+| Modul | Isi | Controller |
+|---|---|---|
+| Autentikasi | Masuk, Daftar (akun User otomatis), "Ingat saya", batas 5 percobaan gagal, Keluar, mode tamu (hanya baca) | `AuthController` |
+| Dashboard & monitoring | Status Aman/Waspada/Bahaya, tinggi air, tren, pasang tertinggi, angin & gelombang, penyegaran otomatis 60 dtk (mati bila Mode Offline) | `DashboardController` |
+| Prediksi | Grafik pasang surut 24/48 jam + riwayat 7 hari (SVG dirender server) | `PredictionController` |
+| Laporan pesisir | User dapat mengirim laporan; hanya admin dapat melihat, mencari, mengubah status, dan mengelola laporan | `ReportController` |
+| Notifikasi / anomali | Peringatan otomatis saat air Waspada/Bahaya; tandai dibaca, hapus | `AlertController`, `AlertService`, `pesisir:check-tide` |
+| Peringatan dini cuaca | Memeriksa ambang angin/gelombang dan mengirim WhatsApp ke pengguna opt-in di lokasi terdampak | `pesisir:check-extreme-weather`, `WhatsAppCloudApi` |
+| Ikan | Katalog database per wilayah dengan pencarian dan paginasi/lihat selengkapnya, unggah foto tangkapan, dan pengisian otomatis foto katalog untuk ikan cocok tanpa foto | `FishController`, `CatchLogController`, `FishCatalogPhotoService` |
+| Komunitas | Papan pesan (cari, pagination), kirim pesan dan balasan antar pengguna | `CommunityController` |
+| Setelan | Edit akun, ganti kata sandi, pilih lokasi (cari + filter wilayah), toggle Notifikasi Kondisi & Mode Offline | `SettingsController` |
+| Admin | Ringkasan statistik, broadcast WhatsApp, kelola pengguna (cari, filter, koreksi peran, hapus), CRUD katalog ikan | `Admin\*` |
+
+### RBAC
+
+| Aksi | Tamu | User | Admin |
+|---|:-:|:-:|:-:|
+| Baca Beranda, Prediksi, Ikan, Komunitas | ✓ | ✓ | ✓ |
+| Ganti lokasi (tamu: disimpan di session) | ✓ | ✓ | ✓ |
+| Catat tangkapan, kirim/balas pesan, notifikasi, setelan akun | – | ✓ | ✓ |
+| Buat laporan (tanpa melihat laporan) | – | ✓ | ✓ |
+| Lihat dan kelola semua laporan, ubah status, kelola pengguna & katalog ikan | – | – | ✓ |
+
+Penegakan: middleware `role:` (`app/Http/Middleware/EnsureRole.php`) + Policy (`app/Policies`).
+
+## Struktur proyek (MVC)
+
+```
+app/
+├── Models/            Location, User, Fish, CatchLog, CommunityPost, Report, Alert   (M)
+├── Enums/             Region, UserRole, FishRarity, ReportCategory/Severity/Status, TideLevel, AlertSource
+├── Http/
+│   ├── Controllers/   Auth, Dashboard, Prediction, Fish, CatchLog, Community, Report, Alert, Settings, Admin/*   (C)
+│   ├── Requests/      Validasi server (Login, Register, Report, CatchLog, CommunityPost, Fish, UpdateProfile/Password)
+│   └── Middleware/    EnsureRole (RBAC)
+├── Policies/          ReportPolicy, CatchLogPolicy, CommunityPostPolicy
+├── Services/          TideSimulator (simulasi pasang surut/cuaca), AlertService, WhatsAppCloudApi
+├── Support/           ChartBuilder, Format, CurrentLocation
+└── Console/Commands/  CheckTideAlerts, CheckExtremeWeather
+resources/views/       layouts, partials, auth, beranda, prediksi, ikan, laporan, komunitas, pengaturan, notifikasi, admin, errors   (V)
+routes/                web.php, console.php (scheduler)
+database/              migrations/ · seeders/ · sql/pesisir_mysql.sql
+public/                js/app.js · css/app.css (hasil build Tailwind)
+lang/id/               pesan validasi & auth berbahasa Indonesia
+tests/Unit/            TideSimulatorTest, FormatTest
+```
+
+## Skema database (3NF)
+
+- `locations` (id, name **unik**, region ENUM) 
+- `users` (id, name, whatsapp_number **unik**, password, role ENUM[ADMIN,USER], location_id → locations *SET NULL*, notif_kondisi, whatsapp_opt_in, mode_offline)
+- `fish` (id, name, description, rarity ENUM, region ENUM, image_url; **unik (name, region)**)
+- `catch_logs` (id, user_id → users *CASCADE*, location_id → locations *SET NULL*, region, fish_name, quantity, note, image_path)
+- `community_posts` (id, user_id → users *SET NULL*, parent_id → community_posts *CASCADE*, name, area, message)
+- `reports` (id, user_id → users *SET NULL*, location_id → locations *RESTRICT*, title, category/severity/status ENUM, description)
+- `alerts` (id, user_id → users *CASCADE*, location_id → locations *CASCADE*, source/level ENUM, water_level, title, message, read_at)
+- Index: `locations(region)`, `users(role)`, `fish(region)`, `catch_logs(user_id, created_at)`, `catch_logs(region, fish_name)`, `community_posts(parent_id, created_at)`, `reports(status|category|severity|created_at)`, `alerts(user_id, read_at)`, `alerts_dedupe_idx`.
+
+## Menjalankan secara lokal
+
+**Prasyarat:** PHP ≥ 8.2 (ekstensi `pdo_mysql`, `mbstring`, `intl`, `xml`, `ctype`, `openssl`), Composer 2, MySQL 8 / MariaDB 10.6+, Node.js ≥ 18 (hanya untuk membangun CSS).
+
+```bash
+# 1. Pasang dependensi
+composer install
+npm install
+
+# 2. Environment
+cp .env.example .env
+php artisan key:generate
+#    lalu edit .env -> DB_DATABASE, DB_USERNAME, DB_PASSWORD
+
+# 3. Buat database kosong (contoh)
+mysql -u root -p -e "CREATE DATABASE pesisir_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+# 4. Migrasi + data awal
+php artisan migrate --seed
+php artisan storage:link
+
+# 5. Bangun CSS Tailwind  (WAJIB — tanpa ini halaman tampil tanpa gaya)
+npm run build              # atau `npm run dev` untuk mode watch
+
+# 6. Jalankan
+php artisan serve          # http://localhost:8000
+```
+
+**Peringatan otomatis berkala (opsional):** tambahkan cron `* * * * * php /path/proyek/artisan schedule:run >> /dev/null 2>&1` (menjalankan `pesisir:check-tide` dan `pesisir:check-extreme-weather` tiap 10 menit), atau jalankan manual `php artisan pesisir:check-extreme-weather` / `php artisan pesisir:check-tide`. Tanpa cron, peringatan kondisi air tetap dibuat saat pengguna membuka Beranda.
+
+**Alternatif tanpa artisan migrate:** `mysql -u USER -p pesisir_db < database/sql/pesisir_mysql.sql` (DDL + data awal; jangan dicampur dengan `migrate`).
+
+**Tes unit:** `composer test`
+
+### Akun demo (GANTI/hapus sebelum produksi)
+
+| Peran | WhatsApp | Kata sandi |
+|---|---|---|
+| Admin | `081200000001` | `admin12345` |
+| User | `082336478234` | `pesisir123` |
+| User | `081234567890` | `pesisir123` |
+
+Seeder idempoten (`php artisan db:seed` aman diulang; akun yang sudah ada tidak ditimpa).
+
+## Catatan teknis
+
+- **Data laut dan cuaca adalah simulasi** (`app/Services/TideSimulator.php`): dua gelombang sinus dengan fase per lokasi serta nilai angin/gelombang deterministik; tidak disimpan di DB dan bukan pengukuran nyata. Peringatan cuaca ini belum menggunakan feed meteorologi/sensor real-time; hubungkan penyedia data resmi sebelum dipakai untuk keselamatan operasional. Ambang pasang: `< 1,5 m` Aman · `1,5–1,99 m` Waspada · `≥ 2,0 m` Bahaya.
+- **Keamanan:** CSRF di semua form, kata sandi bcrypt, session `httpOnly`+`SameSite=Lax`, validasi server via FormRequest, otorisasi via Policy, batas percobaan login, query terparameter (Eloquent), output Blade ter-escape.
+- **Zona waktu:** aplikasi & sesi MySQL memakai WIB (`Asia/Jakarta`, `DB_TIMEZONE=+07:00`).
+- **WhatsApp otomatis:** isi `META_WHATSAPP_TOKEN`, `META_WHATSAPP_PHONE_NUMBER_ID`, dan nama/language template yang telah disetujui di Meta Cloud API. `META_WHATSAPP_API_URL` harus tetap menggunakan endpoint HTTPS resmi `https://graph.facebook.com`. Template harus memiliki satu parameter teks pada body (`{{1}}`); tombol bagikan panel admin menampilkan pratinjau/jumlah penerima dan mengirim paralel per batch (maksimal 10 request bersamaan), sementara peringatan cuaca dan broadcast hanya mengirim ke user yang sudah opt-in. Jangan mengirim broadcast ke nomor yang belum menyetujui pesan; jangan commit token.
+- **Ambang cuaca:** `WEATHER_ALERT_WIND_SPEED_KMH` (default 30 km/jam), `WEATHER_ALERT_WAVE_HEIGHT_M` (default 2 m), dan `WEATHER_ALERT_DEDUPE_HOURS` (default 3 jam) dapat diatur melalui `.env`. Pengiriman cuaca dibatasi per lokasi/penerima/kombinasi kondisi selama periode deduplikasi.
+- **Foto katalog ikan:** foto tangkapan disimpan di disk publik dan path-nya di database. Jika nama ikan sangat cocok (kemiripan minimal 90%, hanya satu kandidat yang jelas) dengan ikan katalog di wilayah yang sama dan katalog belum memiliki foto, salinan foto akan menjadi foto katalog. Foto katalog yang telah ada tidak ditimpa. Jalankan `php artisan migrate` untuk menambahkan `fish.image_path` dan pastikan `php artisan storage:link` sudah dijalankan.
+- **Font** dimuat dari Google Fonts (perlu internet di browser).
+- **Produksi:** `APP_ENV=production`, `APP_DEBUG=false`, `php artisan config:cache route:cache view:cache`, arahkan web server ke folder `public/`.
+
+## Belum tersedia
+Reset kata sandi mandiri ("Lupa kata sandi?" menampilkan petunjuk menghubungi admin), unggah foto laporan (kolom `image_url` katalog ikan menerima tautan), modul marketplace.
