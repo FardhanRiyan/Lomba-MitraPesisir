@@ -1,0 +1,47 @@
+{
+    "name": "mitrapesisir/pesisir-mvc",
+    "type": "project",
+    "description": "MitraPesisir — Pusat Data Komunitas & Kondisi Laut (Laravel MVC, FITCOM 4.0)",
+    "keywords": ["laravel", "mvc", "pesisir", "marine"],
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^12.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi"
+        ],
+        "test": [
+            "vendor/bin/phpunit"
+        ]
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
