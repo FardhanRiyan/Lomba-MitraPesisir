@@ -59,7 +59,8 @@ tests/Unit/            TideSimulatorTest, FormatTest
 - `community_posts` (id, user_id → users *SET NULL*, parent_id → community_posts *CASCADE*, name, area, message)
 - `reports` (id, user_id → users *SET NULL*, location_id → locations *RESTRICT*, title, category/severity/status ENUM, description)
 - `alerts` (id, user_id → users *CASCADE*, location_id → locations *CASCADE*, source/level ENUM, water_level, title, message, read_at)
-- Index: `locations(region)`, `users(role)`, `fish(region)`, `catch_logs(user_id, created_at)`, `catch_logs(region, fish_name)`, `community_posts(parent_id, created_at)`, `reports(status|category|severity|created_at)`, `alerts(user_id, read_at)`, `alerts_dedupe_idx`.
+- `user_notifications` (id, user_id → users *CASCADE*, title, message, read_at) — informasi yang dibagikan admin kepada user melalui notifikasi aplikasi
+- Index: `locations(region)`, `users(role)`, `fish(region)`, `catch_logs(user_id, created_at)`, `catch_logs(region, fish_name)`, `community_posts(parent_id, created_at)`, `reports(status|category|severity|created_at)`, `alerts(user_id, read_at)`, `alerts_dedupe_idx`, `user_notifications(user_id, read_at)`.
 
 ## Menjalankan secara lokal
 
@@ -112,7 +113,7 @@ Seeder idempoten (`php artisan db:seed` aman diulang; akun yang sudah ada tidak 
 - **Data laut adalah simulasi** (`app/Services/TideSimulator.php`): dua gelombang sinus (periode ±12,42 jam & ±24,84 jam) dengan fase per lokasi; tidak disimpan di DB dan bukan pengukuran nyata — sesuai teks pada desain Figma. Ambang: `< 1,5 m` Aman · `1,5–1,99 m` Waspada · `≥ 2,0 m` Bahaya.
 - **Keamanan:** CSRF di semua form, kata sandi bcrypt, session `httpOnly`+`SameSite=Lax`, validasi server via FormRequest, otorisasi via Policy, batas percobaan login, query terparameter (Eloquent), output Blade ter-escape.
 - **Zona waktu:** aplikasi & sesi MySQL memakai WIB (`Asia/Jakarta`, `DB_TIMEZONE=+07:00`).
-- **WhatsApp otomatis:** isi `META_WHATSAPP_TOKEN`, `META_WHATSAPP_PHONE_NUMBER_ID`, dan nama/language template yang telah disetujui di Meta Cloud API. Template harus memiliki satu parameter teks pada body (`{{1}}`); tombol bagikan di panel admin mengirim info hanya kepada user yang telah menyetujuinya di Setelan/pendaftaran. Jangan commit token.
+- **Bagikan informasi admin:** tombol di panel admin membuka pemilih penerima dan mengirim informasi ke notifikasi aplikasi untuk user terpilih atau seluruh user. Fitur ini tidak memerlukan WhatsApp Cloud API.
 - **Font** dimuat dari Google Fonts (perlu internet di browser).
 - **Produksi:** `APP_ENV=production`, `APP_DEBUG=false`, `php artisan config:cache route:cache view:cache`, arahkan web server ke folder `public/`.
 

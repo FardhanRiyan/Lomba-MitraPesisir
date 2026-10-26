@@ -92,7 +92,7 @@
 
                 <label class="mt-4 flex items-start gap-2 text-sm text-grey-700">
                     <input type="checkbox" name="whatsapp_opt_in" value="1" @checked(old('whatsapp_opt_in')) class="mt-1 h-4 w-4 accent-blue-600">
-                    <span>Saya bersedia menerima info kondisi pesisir melalui WhatsApp. Persetujuan ini dapat dimatikan kapan saja di Setelan.</span>
+                    <span>Saya menyimpan persetujuan WhatsApp sebagai preferensi akun. Informasi yang dibagikan admin saat ini dikirim melalui notifikasi aplikasi.</span>
                 </label>
 
                 <div class="mt-4">
@@ -159,7 +159,7 @@
         <div class="mt-3 space-y-3 text-sm leading-relaxed text-navy-800">
             <p>Kami menyimpan nama, nomor WhatsApp, lokasi pilihan, dan preferensi Anda untuk menjalankan fitur aplikasi.</p>
             <p>Kata sandi disimpan dalam bentuk hash satu arah, tidak pernah dalam bentuk asli.</p>
-            <p>Nama dan daerah pada pesan komunitas tampil publik, sedangkan laporan pesisir hanya dapat dilihat admin. Nomor WhatsApp Anda tidak ditampilkan ke pengguna lain. Info WhatsApp hanya dikirim jika Anda menyetujuinya.</p>
+            <p>Nama dan daerah pada pesan komunitas tampil publik, sedangkan laporan pesisir hanya dapat dilihat admin. Nomor WhatsApp Anda tidak ditampilkan ke pengguna lain. Informasi yang dibagikan admin dikirim melalui notifikasi aplikasi.</p>
         </div>
         <button type="button" data-modal-close class="btn-primary mt-5 w-full">Mengerti</button>
     </dialog>

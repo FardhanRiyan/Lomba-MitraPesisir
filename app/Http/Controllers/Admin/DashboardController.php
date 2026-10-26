@@ -12,13 +12,13 @@ use App\Models\Fish;
 use App\Models\Location;
 use App\Models\Report;
 use App\Models\User;
+use App\Models\UserNotification;
 use App\Services\TideSimulator;
-use App\Services\WhatsAppCloudApi;
 use App\Support\CurrentLocation;
 use App\Support\Format;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -28,7 +28,6 @@ class DashboardController extends Controller
     public function __construct(
         private readonly TideSimulator $tide,
         private readonly CurrentLocation $current,
-        private readonly WhatsAppCloudApi $whatsApp,
     ) {
     }
 
@@ -69,53 +68,88 @@ class DashboardController extends Controller
             ]),
             'topLocations' => $topLocations,
             'latestReports' => Report::query()->with(['location:id,name', 'user:id,name'])->latest()->orderByDesc('id')->limit(5)->get(),
-            'whatsappConfigured' => $this->whatsApp->isConfigured(),
+            'shareUsers' => User::query()
+                ->where('role', UserRole::USER->value)
+                ->orderBy('name')
+                ->orderBy('id')
+                ->get(['id', 'name', 'whatsapp_number']),
+            ...$this->defaultShareContent(),
         ]);
     }
 
-    public function shareInformation(): RedirectResponse
+    public function shareInformation(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'recipient_mode' => ['sometimes', 'in:selected,all'],
+            'title' => ['required', 'string', 'max:150'],
+            'message' => ['required', 'string', 'max:2000'],
+            'user_ids' => ['required_unless:recipient_mode,all', 'array', 'min:1'],
+            'user_ids.*' => ['required', 'integer', 'distinct', 'exists:users,id'],
+        ]);
+
+        $recipientMode = $data['recipient_mode'] ?? 'selected';
+        $recipientCount = DB::transaction(function () use ($recipientMode, $data): int {
+            $users = User::query()->where('role', UserRole::USER->value);
+            if ($recipientMode === 'selected') {
+                $users->whereIn('id', $data['user_ids']);
+            }
+
+            $recipientIds = $users->orderBy('id')->lockForUpdate()->pluck('id');
+            if ($recipientMode === 'selected' && $recipientIds->count() !== count($data['user_ids'])) {
+                throw ValidationException::withMessages(['user_ids' => 'Pilih akun user yang valid sebagai penerima.']);
+            }
+            if ($recipientIds->isEmpty()) {
+                throw ValidationException::withMessages(['user_ids' => 'Belum ada user yang dapat menerima informasi.']);
+            }
+
+            $sentAt = now();
+            foreach ($recipientIds->chunk(500) as $recipientChunk) {
+                UserNotification::query()->insert($recipientChunk->map(fn (int $userId) => [
+                    'user_id' => $userId,
+                    'title' => $data['title'],
+                    'message' => $data['message'],
+                    'created_at' => $sentAt,
+                    'updated_at' => $sentAt,
+                ])->all());
+            }
+
+            return $recipientIds->count();
+        });
+
+        return redirect()->route('admin.dashboard')->with(
+            'success',
+            "Informasi berhasil dikirim melalui notifikasi aplikasi kepada {$recipientCount} user."
+        );
+    }
+
+    /**
+     * @return array{shareTitle: string, shareMessage: string}
+     */
+    private function defaultShareContent(): array
     {
         $location = $this->current->get();
         if ($location === null) {
-            throw ValidationException::withMessages(['share' => 'Belum ada lokasi pesisir untuk dibagikan.']);
+            return [
+                'shareTitle' => 'Informasi MitraPesisir',
+                'shareMessage' => '',
+            ];
         }
 
         $status = $this->tide->status($location->id);
         $trend = ['NAIK' => 'air sedang naik', 'TURUN' => 'air sedang turun', 'STABIL' => 'air relatif stabil'];
-        $message = sprintf(
-            'Info MitraPesisir - %s: status %s, tinggi air %s m (%s). Angin %d km/j, gelombang %s m. Diperbarui %s WIB.',
-            $location->name,
-            $status['level']->label(),
-            Format::meters($status['waterLevel']),
-            $trend[$status['trend']],
-            $status['windSpeedKmh'],
-            Format::meters($status['waveHeightM'], 1),
-            Format::clock($status['recordedAt']),
-        );
 
-        $recipients = User::query()
-            ->where('role', UserRole::USER->value)
-            ->where('whatsapp_opt_in', true)
-            ->orderBy('id')
-            ->get(['id', 'whatsapp_number']);
-
-        if ($recipients->isEmpty()) {
-            return redirect()->route('admin.dashboard')->with('warning', 'Belum ada user yang menyetujui pengiriman info WhatsApp.');
-        }
-
-        $result = $this->whatsApp->broadcast($recipients, $message);
-        Log::info('WhatsApp info broadcast completed.', ['sent' => $result['sent'], 'failed' => $result['failed']]);
-
-        if ($result['failed'] > 0) {
-            return redirect()->route('admin.dashboard')->with(
-                'error',
-                "Permintaan diterima WhatsApp untuk {$result['sent']} user; gagal untuk {$result['failed']} user. Periksa log aplikasi dan konfigurasi Meta Cloud API."
-            );
-        }
-
-        return redirect()->route('admin.dashboard')->with(
-            'success',
-            "WhatsApp menerima permintaan pengiriman info pasang surut untuk {$result['sent']} user."
-        );
+        return [
+            'shareTitle' => 'Info pasang surut - '.$location->name,
+            'shareMessage' => sprintf(
+                'Info MitraPesisir - %s: status %s, tinggi air %s m (%s). Angin %d km/j, gelombang %s m. Diperbarui %s WIB.',
+                $location->name,
+                $status['level']->label(),
+                Format::meters($status['waterLevel']),
+                $trend[$status['trend']],
+                $status['windSpeedKmh'],
+                Format::meters($status['waveHeightM'], 1),
+                Format::clock($status['recordedAt']),
+            ),
+        ];
     }
 }

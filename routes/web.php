@@ -62,6 +62,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifikasi/baca-semua', [AlertController::class, 'readAll'])->name('alerts.readAll');
     Route::patch('/notifikasi/{alert}/baca', [AlertController::class, 'read'])->whereNumber('alert')->name('alerts.read');
     Route::delete('/notifikasi/{alert}', [AlertController::class, 'destroy'])->whereNumber('alert')->name('alerts.destroy');
+    Route::patch('/notifikasi/pesan-admin/{userNotification}/baca', [AlertController::class, 'readUserNotification'])->whereNumber('userNotification')->name('alerts.messages.read');
+    Route::delete('/notifikasi/pesan-admin/{userNotification}', [AlertController::class, 'destroyUserNotification'])->whereNumber('userNotification')->name('alerts.messages.destroy');
 });
 
 // ---- Laporan: warga hanya mengirim; daftar dan detail hanya untuk admin. ---

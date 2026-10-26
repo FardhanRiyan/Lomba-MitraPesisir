@@ -39,10 +39,10 @@ class AppServiceProvider extends ServiceProvider
             $view->with([
                 'currentLocation' => app(CurrentLocation::class)->get(),
                 'unreadAlerts' => $user
-                    ? $user->alerts()
+                    ? ($user->alerts()
                         ->when(! $user->isAdmin(), fn ($query) => $query->where('source', AlertSource::KONDISI->value))
                         ->whereNull('read_at')
-                        ->count()
+                        ->count() + $user->userNotifications()->whereNull('read_at')->count())
                     : 0,
             ]);
         });

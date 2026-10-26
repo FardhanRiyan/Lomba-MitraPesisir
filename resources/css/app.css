@@ -120,6 +120,15 @@ dialog.modal::backdrop {
   background: rgba(10, 38, 71, 0.55);
 }
 
+dialog.admin-share-modal {
+  width: calc(100vw - 2rem);
+  max-width: none;
+  height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+  overflow: hidden;
+  padding: 0;
+}
+
 :focus-visible {
   outline: 2px solid #1e7fe0;
   outline-offset: 2px;

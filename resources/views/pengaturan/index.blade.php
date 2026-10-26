@@ -94,7 +94,7 @@
                 @php
                     $toggles = [
                         ['notif_kondisi', 'Notifikasi Kondisi', 'Dapat pemberitahuan saat status berubah ke waspada atau tidak disarankan melaut.', auth()->user()?->notif_kondisi ?? true],
-                        ['whatsapp_opt_in', 'Info melalui WhatsApp', 'Izinkan MitraPesisir mengirim info pesisir melalui WhatsApp. Anda dapat mengubah persetujuan ini kapan saja.', auth()->user()?->whatsapp_opt_in ?? false],
+                        ['whatsapp_opt_in', 'Persetujuan WhatsApp', 'Preferensi akun ini tidak memengaruhi informasi admin yang dikirim melalui notifikasi aplikasi.', auth()->user()?->whatsapp_opt_in ?? false],
                         ['mode_offline', 'Mode Offline', 'Bekukan tampilan Beranda pada data yang terakhir dimuat (tanpa penyegaran otomatis).', auth()->user()?->mode_offline ?? false],
                     ];
                 @endphp

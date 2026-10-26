@@ -37,10 +37,60 @@
     if (dlg.hasAttribute('data-open-on-load') && typeof dlg.showModal === 'function') dlg.showModal();
   });
 
+  // Pemilihan penerima informasi admin.
+  document.querySelectorAll('[data-recipient-list]').forEach(function (list) {
+    var dialog = list.closest('dialog');
+    var checkboxes = Array.from(list.querySelectorAll('[data-recipient-checkbox]'));
+    var selectAll = dialog.querySelector('[data-select-all-checkbox]');
+    var search = dialog.querySelector('[data-recipient-search]');
+    var selectedCount = dialog.querySelector('[data-selected-count]');
+
+    function updateSelection() {
+      var selected = checkboxes.filter(function (checkbox) { return checkbox.checked; }).length;
+      if (selectedCount) selectedCount.textContent = String(selected);
+      if (selectAll) {
+        selectAll.checked = checkboxes.length > 0 && selected === checkboxes.length;
+        selectAll.indeterminate = selected > 0 && selected < checkboxes.length;
+      }
+    }
+
+    checkboxes.forEach(function (checkbox) {
+      checkbox.addEventListener('change', updateSelection);
+    });
+    if (selectAll) {
+      selectAll.addEventListener('change', function () {
+        checkboxes.forEach(function (checkbox) { checkbox.checked = selectAll.checked; });
+        updateSelection();
+      });
+    }
+    if (search) {
+      search.addEventListener('input', function () {
+        var term = search.value.trim().toLocaleLowerCase();
+        list.querySelectorAll('[data-recipient-option]').forEach(function (option) {
+          option.hidden = !option.getAttribute('data-search-text').includes(term);
+        });
+      });
+    }
+
+    var form = dialog.querySelector('#admin-share-form');
+    if (form) {
+      form.addEventListener('submit', function (event) {
+        if (event.submitter && event.submitter.hasAttribute('data-send-all')) {
+          checkboxes.forEach(function (checkbox) { checkbox.checked = true; });
+          updateSelection();
+        }
+      });
+    }
+
+    updateSelection();
+  });
+
   // Konfirmasi sebelum menghapus.
   document.querySelectorAll('form[data-confirm]').forEach(function (form) {
     form.addEventListener('submit', function (e) {
-      if (!window.confirm(form.getAttribute('data-confirm'))) e.preventDefault();
+      var submitterPrompt = e.submitter && e.submitter.getAttribute('data-confirm');
+      var prompt = submitterPrompt || form.getAttribute('data-confirm');
+      if (prompt && !window.confirm(prompt)) e.preventDefault();
     });
   });
 
