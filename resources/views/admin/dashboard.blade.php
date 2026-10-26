@@ -4,8 +4,6 @@
 @section('subtitle', 'Ringkasan statistik aplikasi, sebaran laporan, dan akses cepat ke pengelolaan pengguna serta katalog ikan.')
 
 @section('content')
-    @include('admin.subnav')
-
     <section class="glass-card mb-5 p-6">
         <h2 class="font-serif text-xl font-bold">Bagikan info pasang surut</h2>
         <p class="mt-1 text-sm text-grey-600">

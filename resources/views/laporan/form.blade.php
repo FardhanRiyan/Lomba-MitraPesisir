@@ -6,7 +6,7 @@
 @section('subtitle', 'Laporkan kondisi pesisir agar admin dapat meninjau dan menindaklanjutinya.')
 
 @section('content')
-    <section class="glass-card max-w-2xl p-6">
+    <section class="glass-card mx-auto max-w-2xl p-6">
         <a href="{{ $editing ? route('laporan.show', $report) : (auth()->user()->isAdmin() ? route('laporan.index') : route('beranda')) }}" class="text-sm font-bold text-blue-600">&larr; Batal</a>
 
         <form method="POST" action="{{ $editing ? route('laporan.update', $report) : route('laporan.store') }}" novalidate class="mt-4 space-y-4">

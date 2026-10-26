@@ -68,7 +68,18 @@
                                 <span class="flex-none font-mono text-xs text-grey-400">{{ $post->created_at->diffForHumans() }}</span>
                             </div>
                             <p class="mt-1.5 text-xs font-bold text-[#4a3fd6]">{{ $post->area }}</p>
-                            <p class="mt-1 whitespace-pre-line text-sm">{{ $post->message }}</p>
+                            @if (mb_strlen($post->message) > 180)
+                                <details class="community-message mt-1">
+                                    <summary class="cursor-pointer list-none text-sm">
+                                        <span class="community-message-excerpt whitespace-pre-line">{{ \Illuminate\Support\Str::limit($post->message, 180) }}</span>
+                                        <span class="community-message-expand font-bold text-blue-600">Lihat lainnya</span>
+                                        <span class="community-message-collapse font-bold text-blue-600">Tampilkan lebih sedikit</span>
+                                    </summary>
+                                    <p class="mt-1 whitespace-pre-line text-sm">{{ $post->message }}</p>
+                                </details>
+                            @else
+                                <p class="mt-1 whitespace-pre-line text-sm">{{ $post->message }}</p>
+                            @endif
                             @auth
                                 <form method="POST" action="{{ route('komunitas.reply', $post) }}" class="mt-3 flex gap-2">
                                     @csrf
@@ -85,7 +96,18 @@
                                                 <span class="text-xs font-extrabold">{{ $reply->name }} <span class="font-semibold text-grey-400">· {{ $reply->area }}</span></span>
                                                 <span class="font-mono text-[10px] text-grey-400">{{ $reply->created_at->diffForHumans() }}</span>
                                             </div>
-                                            <p class="mt-1 whitespace-pre-line text-sm">{{ $reply->message }}</p>
+                                            @if (mb_strlen($reply->message) > 180)
+                                                <details class="community-message mt-1">
+                                                    <summary class="cursor-pointer list-none text-sm">
+                                                        <span class="community-message-excerpt whitespace-pre-line">{{ \Illuminate\Support\Str::limit($reply->message, 180) }}</span>
+                                                        <span class="community-message-expand font-bold text-blue-600">Lihat lainnya</span>
+                                                        <span class="community-message-collapse font-bold text-blue-600">Tampilkan lebih sedikit</span>
+                                                    </summary>
+                                                    <p class="mt-1 whitespace-pre-line text-sm">{{ $reply->message }}</p>
+                                                </details>
+                                            @else
+                                                <p class="mt-1 whitespace-pre-line text-sm">{{ $reply->message }}</p>
+                                            @endif
                                             @auth
                                                 <form method="POST" action="{{ route('komunitas.reply', $reply) }}" class="mt-2 flex gap-2">
                                                     @csrf

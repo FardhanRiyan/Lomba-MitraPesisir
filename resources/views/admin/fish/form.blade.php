@@ -6,8 +6,6 @@
 @section('subtitle', 'Data ini tampil di halaman Ikan sesuai wilayah dan tingkat kelangkaannya.')
 
 @section('content')
-    @include('admin.subnav')
-
     <section class="glass-card max-w-2xl p-6">
         <a href="{{ route('admin.fish.index') }}" class="text-sm font-bold text-blue-600">&larr; Batal</a>
 

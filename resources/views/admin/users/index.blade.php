@@ -4,8 +4,6 @@
 @section('subtitle', 'Cari pengguna, saring berdasarkan peran, edit data akun, atau hapus akun.')
 
 @section('content')
-    @include('admin.subnav')
-
     <section class="glass-card p-6">
         <form method="GET" action="{{ route('admin.users.index') }}" class="grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
             <div>

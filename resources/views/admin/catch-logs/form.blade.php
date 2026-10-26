@@ -4,8 +4,6 @@
 @section('subtitle', 'Perbarui isi dan foto catatan tangkapan pengguna.')
 
 @section('content')
-    @include('admin.subnav')
-
     <section class="glass-card max-w-2xl p-6">
         <a href="{{ route('admin.catch-logs.index') }}" class="text-sm font-bold text-blue-600">&larr; Kembali ke daftar tangkapan</a>
         <p class="mt-3 text-sm text-grey-600">Dikirim oleh <strong>{{ $log->user?->name ?? 'Pengguna dihapus' }}</strong>

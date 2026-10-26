@@ -4,8 +4,6 @@
 @section('subtitle', 'Tinjau dan edit semua catatan tangkapan yang dikirim oleh pengguna.')
 
 @section('content')
-    @include('admin.subnav')
-
     <section class="glass-card p-6">
         <form method="GET" action="{{ route('admin.catch-logs.index') }}" class="grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
             <div>

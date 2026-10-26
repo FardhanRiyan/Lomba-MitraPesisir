@@ -54,6 +54,11 @@ body {
   border-color: #d9534f;
 }
 
+.community-message[open] .community-message-excerpt,
+.community-message:not([open]) .community-message-collapse {
+  display: none;
+}
+
 .btn-primary {
   display: inline-block;
   text-align: center;

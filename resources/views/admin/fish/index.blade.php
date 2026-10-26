@@ -4,8 +4,6 @@
 @section('subtitle', 'Kelola data ketersediaan ikan yang tampil di halaman Ikan.')
 
 @section('content')
-    @include('admin.subnav')
-
     <section class="glass-card p-6">
         <div class="flex flex-wrap items-start justify-between gap-3">
             <form method="GET" action="{{ route('admin.fish.index') }}" class="grid flex-1 gap-3 sm:grid-cols-[1fr_12rem_auto]">

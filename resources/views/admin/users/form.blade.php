@@ -4,8 +4,6 @@
 @section('subtitle', 'Perbarui profil, lokasi, peran, atau atur ulang kata sandi pengguna.')
 
 @section('content')
-    @include('admin.subnav')
-
     <section class="glass-card max-w-2xl p-6">
         <a href="{{ route('admin.users.index') }}" class="text-sm font-bold text-blue-600">&larr; Kembali ke daftar pengguna</a>
 
