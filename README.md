@@ -62,6 +62,16 @@ tests/Unit/            TideSimulatorTest, FormatTest
 - `user_notifications` (id, user_id → users *CASCADE*, title, message, read_at) — informasi yang dibagikan admin kepada user melalui notifikasi aplikasi
 - Index: `locations(region)`, `users(role)`, `fish(region)`, `catch_logs(user_id, created_at)`, `catch_logs(region, fish_name)`, `community_posts(parent_id, created_at)`, `reports(status|category|severity|created_at)`, `alerts(user_id, read_at)`, `alerts_dedupe_idx`, `user_notifications(user_id, read_at)`.
 
+## REST API v1
+
+API JSON tersedia dalam namespace `/api/v1` dan mengikuti pola laravel default untuk aplikasi sesion-based (gunakan cookie/session seperti web app). Endpoint utama yang sudah tersedia:
+
+- Auth & profil: `POST /api/v1/login`, `POST /api/v1/register`, `POST /api/v1/logout`, `GET /api/v1/me`, `PATCH /api/v1/profile`, `PATCH /api/v1/password`, `PATCH /api/v1/preferences`
+- Komunitas: `GET /api/v1/community/posts`, `POST /api/v1/community/posts`, `POST /api/v1/community/posts/{post}/replies`, `DELETE /api/v1/community/posts/{post}`
+- Dashboard & prediksi: `GET /api/v1/dashboard`, `GET /api/v1/predictions?hours=24|48`
+
+Semua response API memakai JSON, dan endpoint yang membutuhkan login akan mengembalikan `401` bila sesi tidak valid.
+
 ## Menjalankan secara lokal
 
 **Prasyarat:** PHP ≥ 8.2 (ekstensi `pdo_mysql`, `mbstring`, `intl`, `xml`, `ctype`, `openssl`), Composer 2, MySQL 8 / MariaDB 10.6+, Node.js ≥ 18 (hanya untuk membangun CSS).
