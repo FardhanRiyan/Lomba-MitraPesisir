@@ -15,12 +15,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Rute web MitraPesisir
-|--------------------------------------------------------------------------
-| Publik (tamu boleh membaca) · Anggota (login) · User/Admin · Admin.
-*/
+
 
 // ---- Tamu: Masuk / Daftar -------------------------------------------------
 Route::middleware('guest')->group(function () {

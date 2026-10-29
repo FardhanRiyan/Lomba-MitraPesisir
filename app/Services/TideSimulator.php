@@ -7,11 +7,8 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 
 /**
- * Simulasi matematis kondisi pasang-surut (bukan data sensor/pengukuran nyata).
- *
- * Tinggi air = baseline + dua gelombang sinus: semi-diurnal (periode ±12,42 jam)
- * dan diurnal (±24,84 jam). Fase/amplitudo diturunkan deterministik dari id lokasi,
- * sehingga hasil selalu sama untuk lokasi + waktu yang sama.
+ * Simulasi kondisi pasang-surut (bukan berasal dari data asli) 
+ 
  */
 final class TideSimulator
 {

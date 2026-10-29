@@ -13,12 +13,12 @@ enum Region: string
 
     public function label(): string
     {
-        return match ($this) {
+        return match($this){
             self::JAWA => 'Jawa',
             self::SUMATRA => 'Sumatra',
             self::KALIMANTAN => 'Kalimantan',
             self::SULAWESI => 'Sulawesi',
-            self::NTT => 'Nusa Tenggara Timur',
+            self::NTT => 'Nusa Tanggara Timur',
         };
     }
 
@@ -32,4 +32,5 @@ enum Region: string
     {
         return array_column(self::cases(), 'value');
     }
+
 }

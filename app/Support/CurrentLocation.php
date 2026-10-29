@@ -5,11 +5,7 @@ namespace App\Support;
 use App\Models\Location;
 use Illuminate\Support\Facades\Auth;
 
-/**
- * Lokasi pesisir aktif untuk request ini.
- * Pengguna login -> lokasi di akunnya; tamu -> lokasi yang disimpan di session.
- * Bila belum ada pilihan, dipakai lokasi pertama (id terkecil).
- */
+
 final class CurrentLocation
 {
     private ?Location $resolved = null;

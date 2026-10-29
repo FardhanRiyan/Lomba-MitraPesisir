@@ -10,9 +10,9 @@ enum ReportCategory: string
     case ABRASI = 'ABRASI';
     case LAINNYA = 'LAINNYA';
 
-    public function label(): string
+    public function label(): string 
     {
-        return match ($this) {
+        return match($this){
             self::KONDISI_AIR => 'Kondisi air laut',
             self::CUACA_EKSTREM => 'Cuaca ekstrem',
             self::PENCEMARAN => 'Pencemaran',
@@ -21,8 +21,7 @@ enum ReportCategory: string
         };
     }
 
-    /** @return list<string> */
-    public static function values(): array
+    public static function values(): array 
     {
         return array_column(self::cases(), 'value');
     }

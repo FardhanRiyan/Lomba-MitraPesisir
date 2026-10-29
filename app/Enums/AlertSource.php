@@ -2,16 +2,16 @@
 
 namespace App\Enums;
 
-enum AlertSource: string
+enum AlertSource: String
 {
-    case KONDISI = 'KONDISI'; // dihasilkan dari status air laut
-    case LAPORAN = 'LAPORAN'; // notifikasi laporan lama
+    case KONDISI = 'KONDISI'; //dihasilkan dari status air laut
+    case LAPORAN = 'LAPORAN'; //notifikasi laporan lama
 
-    public function label(): string
+    public function label() 
     {
-        return match ($this) {
+        return match ($this){
             self::KONDISI => 'Kondisi air laut',
-            self::LAPORAN => 'Laporan pesisir',
+            self::LAPORAN => 'Laporan Pesisir',
         };
     }
 }

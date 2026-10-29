@@ -9,7 +9,7 @@ use App\Http\Requests\FishRequest;
 use App\Models\Fish;
 use App\Support\FishImageStorage;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Fcades\DB;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
